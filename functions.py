@@ -129,7 +129,10 @@ def check_data_quality(df: pd.DataFrame, target_col: str) -> dict:
         if result is None:
             print(f"No {check.lower()} found.\n")
         else:
-            print(f"{check} found: {result.shape[0]}\n")
+            if check == 'Classes':
+                print(f"{check} found: {result['Unique Entries'].tolist()}\n")
+            else:
+                print(f"{check} found: {result.shape[0]}\n")
     
     return {check: result for check, result in checks.items() if result is not None}
 
@@ -168,95 +171,6 @@ def calculate_feature_statistics(df: pd.DataFrame) -> pd.DataFrame:
     }).reset_index(drop=True)
 
     return feature_stats
-
-
-def get_features_on_varience(df, low_variance_threshold=0.0, high_variance_threshold=1.0):
-    """
-    Identifies features with variance below and above specified thresholds.
-
-    Parameters:
-    feature_spread (pd.DataFrame): A DataFrame summarizing the variance and standard deviation of each numerical feature.
-    low_var_threshold (float): A threshold below which features are considered to have low variance.
-    high_var_threshold (float): A threshold above which features are considered to have high variance.
-
-    Returns:
-        - pd.DataFrame: A DataFrame containing features with variance below the low variance threshold.
-        - pd.DataFrame: A DataFrame containing features with variance above the high variance threshold.
-    """
-    df = df.select_dtypes(include='number')
-    low_variance_features = df.var() <= low_variance_threshold
-    high_variance_features = df.var() >= high_variance_threshold
-    
-    return low_variance_features, high_variance_features
-
-
-def feature_selection_filter(X, y, model, cv, score_func):
-    """
-    Performs feature selection using SelectKBest with the provided scoring function and evaluates
-    the performance of the model using cross-validation for a range of features (1 to 20).
-
-    Parameters:
-    ----------
-    X : pandas.DataFrame
-        Input features (predictors).
-        
-    y : pandas.Series or numpy.ndarray
-        Target variable (labels).
-        
-    model : sklearn estimator
-        The machine learning model to be evaluated.
-        
-    cv : cross-validation generator
-        Cross-validation strategy, such as StratifiedKFold.
-        
-    score_func : callable
-        Scoring function for feature selection (e.g., f_classif, mutual_info_classif).
-        
-    Returns:
-    -------
-    results_df : pandas.DataFrame
-        A DataFrame containing the number of features, cross-validation mean accuracy, 
-        cross-validation standard deviation, and selected feature names for each iteration.
-    """
-    # Initialize a list to store results
-    results = []
-
-    # Iterate over the number of features to select (from 1 to 20)
-    for n_features in range(2, 21):
-        # Use SelectKBest to select the top n features using the specified scoring function
-        selector = SelectKBest(score_func=score_func, k=n_features)
-        X_selected = selector.fit_transform(X, y)
-
-        # Get the names of the selected features
-        selected_feature_names = X.columns[selector.get_support()].tolist()
-
-        # Standardize the selected features
-        scaler = StandardScaler()
-        X_selected = scaler.fit_transform(X_selected)
-
-        # Perform cross-validation and calculate accuracy
-        cv_scores = cross_val_score(model, X_selected, y, cv=cv, scoring='accuracy')
-
-        # Store the results (mean and std of cross-validation scores)
-        results.append({
-            'n_features': n_features,
-            'cv_mean_accuracy': np.mean(cv_scores),
-            'cv_std_accuracy': np.std(cv_scores),
-            'selected_features': selected_feature_names
-        })
-
-        # Print the cross-validation results for this number of features
-        print(f"Number of Features: {n_features}, CV Mean Accuracy: {np.mean(cv_scores):.4f} ± {np.std(cv_scores):.4f}")
-
-    # Convert results to DataFrame for better visualization
-    results_df = pd.DataFrame(results)
-
-    # Find the optimal number of features with the highest CV mean accuracy
-    best_result = results_df.loc[results_df['cv_mean_accuracy'].idxmax()]
-    print(f"\nOptimal Number of Features: {best_result['n_features']}")
-    print(f"Best CV Mean Accuracy: {best_result['cv_mean_accuracy']:.4f} ± {best_result['cv_std_accuracy']:.4f}")
-    
-    return results_df
 
 
 def recursive_feature_elimination(X, y, estimator, cv, param_grid):
@@ -356,17 +270,8 @@ def corrupt_dataframe(df):
     Returns:
     - pd.DataFrame: The corrupted DataFrame.
     """
-
-    # Generate random fractions for each type of corruption
-    corruption_fractions = {
-        'missing': random.uniform(0.01, 0.1),
-        'duplicate': random.uniform(0.1, 0.1),
-        'non_numeric': random.uniform(0.01, 0.1),
-        'misspell': random.uniform(0.01, 0.1)
-    }
-
     # Introduce missing values
-    num_missing = int(corruption_fractions['missing'] * df.size)
+    num_missing = int(0.01 * df.size)
     missing_indices = random.sample(range(df.size), num_missing)
 
     for idx in missing_indices:
@@ -374,7 +279,7 @@ def corrupt_dataframe(df):
 
     # Introduce non-numerical entries in numerical columns
     for col in df.select_dtypes(include=np.number).columns:
-        num_non_numeric = int(corruption_fractions['non_numeric'] * len(df))
+        num_non_numeric = int(0.0001 * len(df))
         non_numeric_indices = random.sample(range(len(df)), num_non_numeric)
 
         for idx in non_numeric_indices:
@@ -382,7 +287,7 @@ def corrupt_dataframe(df):
 
     # Introduce misspellings in string columns
     for col in df.select_dtypes(include='object').columns:
-        num_misspellings = int(corruption_fractions['misspell'] * len(df))
+        num_misspellings = int(0.01 * len(df))
         misspell_indices = random.sample(range(len(df)), num_misspellings)
 
         for idx in misspell_indices:
@@ -393,7 +298,7 @@ def corrupt_dataframe(df):
                 df.at[idx, col] = misspelled_value
 
     # Introduce duplicate rows
-    num_rows_to_duplicate = int(corruption_fractions['duplicate'] * len(df))
+    num_rows_to_duplicate = int(0.01 * len(df))
     if num_rows_to_duplicate > 0:
         duplicates = df.sample(num_rows_to_duplicate, replace=True)
         df = pd.concat([df, duplicates], ignore_index=True)
