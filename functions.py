@@ -122,12 +122,14 @@ def check_data_quality(df: pd.DataFrame, target_col: str) -> dict:
         "Missing Values": get_missing_values(df),
         "Duplicate Rows": get_duplicate_rows(df),
         "Non-Numeric Entries": get_non_numeric_values(features_df),
-        "Unique Values": get_unique_target_values(target_df),
+        "Classes": get_unique_target_values(target_df),
         "Inconsistent Decimal Separators": get_inconsistent_decimal_separator(features_df),
     }
     for check, result in checks.items():
         if result is None:
             print(f"No {check.lower()} found.\n")
+        else:
+            print(f"{check} found: {result.shape[0]}\n")
     
     return {check: result for check, result in checks.items() if result is not None}
 
