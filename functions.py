@@ -4,6 +4,8 @@ from sklearn.model_selection import GridSearchCV, cross_val_score
 from sklearn.feature_selection import RFE
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import SelectKBest
+import random
+import string
 
 
 def get_missing_values(df: pd.DataFrame) -> pd.DataFrame | None:
@@ -339,3 +341,59 @@ def recursive_feature_elimination(X, y, estimator, cv, param_grid):
     print(f"Best CV Mean Accuracy: {best_result['cv_mean_accuracy']:.4f} ± {best_result['cv_std_accuracy']:.4f}")
 
     return results_df
+
+
+def corrupt_dataframe(df):
+    """
+    Introduce missing values, duplicate rows, non-numerical entries,
+    and misspelled strings into a DataFrame with randomly generated fractions.
+
+    Parameters:
+    - df (pd.DataFrame): The DataFrame to be corrupted.
+
+    Returns:
+    - pd.DataFrame: The corrupted DataFrame.
+    """
+
+    # Generate random fractions for each type of corruption
+    corruption_fractions = {
+        'missing': random.uniform(0.01, 0.1),
+        'duplicate': random.uniform(0.1, 0.1),
+        'non_numeric': random.uniform(0.01, 0.1),
+        'misspell': random.uniform(0.01, 0.1)
+    }
+
+    # Introduce missing values
+    num_missing = int(corruption_fractions['missing'] * df.size)
+    missing_indices = random.sample(range(df.size), num_missing)
+
+    for idx in missing_indices:
+        df.iat[idx // df.shape[1], idx % df.shape[1]] = np.nan
+
+    # Introduce non-numerical entries in numerical columns
+    for col in df.select_dtypes(include=np.number).columns:
+        num_non_numeric = int(corruption_fractions['non_numeric'] * len(df))
+        non_numeric_indices = random.sample(range(len(df)), num_non_numeric)
+
+        for idx in non_numeric_indices:
+            df.at[idx, col] = random.choice(['a', 'b', 'c', 'invalid', 'non-numeric'])
+
+    # Introduce misspellings in string columns
+    for col in df.select_dtypes(include='object').columns:
+        num_misspellings = int(corruption_fractions['misspell'] * len(df))
+        misspell_indices = random.sample(range(len(df)), num_misspellings)
+
+        for idx in misspell_indices:
+            original_value = df.at[idx, col]
+            if isinstance(original_value, str):
+                # Randomly generate a misspelled version
+                misspelled_value = ''.join(random.choice(original_value) for _ in range(len(original_value)))
+                df.at[idx, col] = misspelled_value
+
+    # Introduce duplicate rows
+    num_rows_to_duplicate = int(corruption_fractions['duplicate'] * len(df))
+    if num_rows_to_duplicate > 0:
+        duplicates = df.sample(num_rows_to_duplicate, replace=True)
+        df = pd.concat([df, duplicates], ignore_index=True)
+
+    return df
