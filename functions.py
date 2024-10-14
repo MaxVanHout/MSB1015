@@ -270,6 +270,10 @@ def corrupt_dataframe(df):
     Returns:
     - pd.DataFrame: The corrupted DataFrame.
     """
+    # Set a random seed for reproducibility
+    random.seed(42)
+    np.random.seed(42)  # Set seed for numpy-related random operations
+
     # Introduce missing values
     num_missing = int(0.01 * df.size)
     missing_indices = random.sample(range(df.size), num_missing)
@@ -284,9 +288,7 @@ def corrupt_dataframe(df):
 
         for idx in non_numeric_indices:
             df.at[idx, col] = random.choice(['a', 'b', 'c', 'invalid', 'non-numeric'])
-            
-    # Set a random seed for reproducibility
-    random.seed(42)  
+    
     # Introduce misspellings in string columns
     for col in df.select_dtypes(include='object').columns:
         num_misspellings = int(0.01 * len(df))
@@ -304,7 +306,7 @@ def corrupt_dataframe(df):
     # Introduce duplicate rows
     num_rows_to_duplicate = int(0.05 * len(df))
     if num_rows_to_duplicate > 0:
-        duplicates = df.sample(num_rows_to_duplicate, replace=True)
+        duplicates = df.sample(num_rows_to_duplicate, replace=True, random_state=42)  # Set random_state for consistency
         df = pd.concat([df, duplicates], ignore_index=True)
 
     return df
