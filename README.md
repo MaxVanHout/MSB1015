@@ -1,6 +1,8 @@
 # MSB1015 - Project
 This repository contains the code of my project for the Scientific Programming (MSB1015) course. The aim of this project is to preprocess data that is used in machine learning algorithms for feature selection.
 
+The [Toxicity data](https://archive.ics.uci.edu/dataset/728/toxicity-2) used for this project includes 171 molecules designed for functional domains of a core clock protein, CRY1, responsible for generating circadian rhythm. 56 of the molecules are toxic and the rest are non-toxic.
+
 
 ## Prerequisites
 Before running the Jupyter Notebook files, ensure that you have the following installed:
