@@ -14,8 +14,14 @@ Use the package manager [pip](https://pip.pypa.io/en/stable/) to install the req
 pip install pandas numpy matplotlib seaborn scikit-learn
 ```
 ## Usage
-Run the preprocessing script first:
+Run the preprocessing script first that takes the uncleaned data as input and outputs clean data:
 ```bash
-python 
+python preprocesing.ipynb
+```
+Run the feature selection script that takes the clean data as imput and runs the ML models:
+```bash
+python feature_selection.ipynb
+```
+
 
 
