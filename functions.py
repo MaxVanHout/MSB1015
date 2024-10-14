@@ -298,7 +298,7 @@ def corrupt_dataframe(df):
                 df.at[idx, col] = misspelled_value
 
     # Introduce duplicate rows
-    num_rows_to_duplicate = int(0.01 * len(df))
+    num_rows_to_duplicate = int(0.05 * len(df))
     if num_rows_to_duplicate > 0:
         duplicates = df.sample(num_rows_to_duplicate, replace=True)
         df = pd.concat([df, duplicates], ignore_index=True)
