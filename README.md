@@ -1,5 +1,5 @@
 # MSB1015 - Project
-This repository contains the code of my project for Scientific Programming (MSB1015) course. The aim of this project is to preprocess data that is used in machine learning algorithms for feature selection.
+This repository contains the code of my project for the Scientific Programming (MSB1015) course. The aim of this project is to preprocess data that is used in machine learning algorithms for feature selection.
 
 ## Prerequisites
 Before running the Jupyter Notebook files, ensure that you have the following installed:
