@@ -16,7 +16,7 @@ pip install jupyterlab
 ```bash
 pip install notebook
 ```
-and run with the following command
+and run with the following command:
 ```bash
 jupyter lab
 ```
@@ -28,9 +28,8 @@ jupyter notebook
 Clone the git repo:
 ```bash
 git clone https://github.com/MaxVanHout/MSB1015.git
-cd MSB1015
 ```
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install the required packages.
+Use [pip](https://pip.pypa.io/en/stable/) to install the required packages:
 ```bash
 pip install pandas numpy matplotlib seaborn scikit-learn
 ```
