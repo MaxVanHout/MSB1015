@@ -6,8 +6,17 @@ Before running the Jupyter Notebook files, ensure that you have the following in
 
 [Python 3.7+](https://www.python.org/downloads/)
 
-**Jupyter Notebook of Jupyter Lab**
-
+**Jupyter Lab of Jupyter Notebook**: 
+```bash
+pip install jupyterlab
+```
+```bash
+pip install notebook
+```
+and run with the following command
+```bash
+jupyter notebook
+```
 ## Installation
 Clone the git repo:
 ```bash
