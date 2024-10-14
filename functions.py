@@ -284,10 +284,9 @@ def corrupt_dataframe(df):
 
         for idx in non_numeric_indices:
             df.at[idx, col] = random.choice(['a', 'b', 'c', 'invalid', 'non-numeric'])
-
+            
     # Set a random seed for reproducibility
-    random.seed(42)  # You can choose any number for the seed
-
+    random.seed(42)  
     # Introduce misspellings in string columns
     for col in df.select_dtypes(include='object').columns:
         num_misspellings = int(0.01 * len(df))
