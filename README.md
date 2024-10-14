@@ -37,6 +37,9 @@ pip install pandas numpy matplotlib seaborn scikit-learn
 
 3) The **functions.py** file contains functions required to run the other two files.
 
+## License 
+[MIT](https://choosealicense.com/licenses/mit/)
+
 ## Contact
 Max Van Hout - maxvanhout00@gmail.com
 
