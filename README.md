@@ -4,7 +4,7 @@ This repository contains the code of my project for the Scientific Programming (
 
 ## Prerequisites
 Before running the Jupyter Notebook files, ensure that you have the following installed:
-
+[PIP Package Manager](https://pypi.org/project/pip/)
 [Python 3.7+](https://www.python.org/downloads/)
 
 **Jupyter Lab of Jupyter Notebook**: 
