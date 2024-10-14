@@ -5,6 +5,7 @@ This repository contains the code of my project for Scientific Programming (MSB1
 Before running the Jupyter Notebook files, ensure that you have the following installed:
 
 [Python 3.7+](https://www.python.org/downloads/)
+/n
 **Jupyter Notebook of Jupyter Lab**
 
 ## Installation
