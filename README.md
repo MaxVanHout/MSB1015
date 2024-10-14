@@ -24,6 +24,7 @@ jupyter notebook
 Clone the git repo:
 ```bash
 git clone https://github.com/MaxVanHout/MSB1015.git
+cd MSB1015
 ```
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install the required packages.
 ```bash
