@@ -14,6 +14,8 @@ Use the package manager [pip](https://pip.pypa.io/en/stable/) to install the req
 pip install pandas numpy matplotlib seaborn scikit-learn
 ```
 ## Usage
-Run the preprocessing script:
+Run the preprocessing script first:
+```bash
+python 
 
 
