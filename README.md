@@ -42,7 +42,7 @@ pip install pandas numpy matplotlib seaborn scikit-learn
 
 
 ## License 
-[MIT](https://choosealicense.com/licenses/mit/)
+See the [LICENSE](LICENSE.md) file for license rights and limitations [(MIT).](https://choosealicense.com/licenses/mit/)
 
 
 ## Contact
