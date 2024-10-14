@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import GridSearchCV, cross_val_score
+from sklearn.model_selection import GridSearchCV, cross_val_score, BaseCrossValidator
 from sklearn.feature_selection import RFE
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import SelectKBest
+from sklearn.base import BaseEstimator
 import random
 import string
 
@@ -173,7 +174,11 @@ def calculate_feature_statistics(df: pd.DataFrame) -> pd.DataFrame:
     return feature_stats
 
 
-def feature_selection_filter(X, y, model, cv, score_func):
+def feature_selection_filter(X: pd.DataFrame, 
+                              y: pd.Series | np.ndarray, 
+                              model: BaseEstimator, 
+                              cv: BaseCrossValidator, 
+                              score_func: callable) -> pd.DataFrame:
     """
     Performs feature selection using SelectKBest with the provided scoring function and evaluates
     the performance of the model using cross-validation for a range of features (1 to 20).
@@ -242,7 +247,11 @@ def feature_selection_filter(X, y, model, cv, score_func):
     return results_df
 
 
-def recursive_feature_elimination(X, y, estimator, cv, param_grid):
+def recursive_feature_elimination(X: pd.DataFrame, 
+                                   y: pd.Series | np.ndarray, 
+                                   estimator: BaseEstimator, 
+                                   cv: BaseCrossValidator, 
+                                   param_grid: dict) -> pd.DataFrame:
     """
     Perform Recursive Feature Elimination (RFE) in combination with Grid Search 
     for hyperparameter tuning to select the optimal number of features for a given estimator.
@@ -328,7 +337,7 @@ def recursive_feature_elimination(X, y, estimator, cv, param_grid):
     return results_df
 
 
-def corrupt_dataframe(df):
+def corrupt_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
     Introduce missing values, duplicate rows, non-numerical entries,
     and misspelled strings into a DataFrame with randomly generated fractions.
