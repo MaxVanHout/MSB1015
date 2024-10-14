@@ -299,7 +299,8 @@ def corrupt_dataframe(df):
         for idx in misspell_indices:
             original_value = df.at[idx, col]
             if isinstance(original_value, str):
-                # Randomly generate a misspelled version with the same randomness
+                # Ensure consistent misspelling by setting a seed before each choice
+                random.seed(idx)  # Seed based on index to ensure reproducibility
                 misspelled_value = ''.join(random.choice(original_value) for _ in range(len(original_value)))
                 df.at[idx, col] = misspelled_value
 
