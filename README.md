@@ -31,9 +31,9 @@ Clone the git repo:
 ```bash
 git clone https://github.com/MaxVanHout/MSB1015.git
 ```
-Use [pip](https://pip.pypa.io/en/stable/) to install the required packages:
+The following [pip](https://pip.pypa.io/en/stable/) command in **preprocessing.ipynb** is used to install the required packages:
 ```bash
-pip install pandas numpy matplotlib seaborn scikit-learn
+pip install -r requirements.txt
 ```
 
 ## Usage
