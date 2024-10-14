@@ -39,7 +39,7 @@ pip install pandas numpy matplotlib seaborn scikit-learn
 2) Run the **feature_selection.ipynb** script next: this takes the **data_cleaned.csv** file as imput and performs various feature selection algorithms.
 
 3) The **functions.py** file contains functions required to run the other two files.
-4) 
+
 
 ## License 
 [MIT](https://choosealicense.com/licenses/mit/)
