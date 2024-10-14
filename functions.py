@@ -173,6 +173,75 @@ def calculate_feature_statistics(df: pd.DataFrame) -> pd.DataFrame:
     return feature_stats
 
 
+def feature_selection_filter(X, y, model, cv, score_func):
+    """
+    Performs feature selection using SelectKBest with the provided scoring function and evaluates
+    the performance of the model using cross-validation for a range of features (1 to 20).
+
+    Parameters:
+    ----------
+    X : pandas.DataFrame
+        Input features (predictors).
+        
+    y : pandas.Series or numpy.ndarray
+        Target variable (labels).
+        
+    model : sklearn estimator
+        The machine learning model to be evaluated.
+        
+    cv : cross-validation generator
+        Cross-validation strategy, such as StratifiedKFold.
+        
+    score_func : callable
+        Scoring function for feature selection (e.g., f_classif, mutual_info_classif).
+        
+    Returns:
+    -------
+    results_df : pandas.DataFrame
+        A DataFrame containing the number of features, cross-validation mean accuracy, 
+        cross-validation standard deviation, and selected feature names for each iteration.
+    """
+    # Initialize a list to store results
+    results = []
+
+    # Iterate over the number of features to select (from 1 to 20)
+    for n_features in range(2, 21):
+        # Use SelectKBest to select the top n features using the specified scoring function
+        selector = SelectKBest(score_func=score_func, k=n_features)
+        X_selected = selector.fit_transform(X, y)
+
+        # Get the names of the selected features
+        selected_feature_names = X.columns[selector.get_support()].tolist()
+
+        # Standardize the selected features
+        scaler = StandardScaler()
+        X_selected = scaler.fit_transform(X_selected)
+
+        # Perform cross-validation and calculate accuracy
+        cv_scores = cross_val_score(model, X_selected, y, cv=cv, scoring='accuracy')
+
+        # Store the results (mean and std of cross-validation scores)
+        results.append({
+            'n_features': n_features,
+            'cv_mean_accuracy': np.mean(cv_scores),
+            'cv_std_accuracy': np.std(cv_scores),
+            'selected_features': selected_feature_names
+        })
+
+        # Print the cross-validation results for this number of features
+        print(f"Number of Features: {n_features}, CV Mean Accuracy: {np.mean(cv_scores):.4f} ± {np.std(cv_scores):.4f}")
+
+    # Convert results to DataFrame for better visualization
+    results_df = pd.DataFrame(results)
+
+    # Find the optimal number of features with the highest CV mean accuracy
+    best_result = results_df.loc[results_df['cv_mean_accuracy'].idxmax()]
+    print(f"\nOptimal Number of Features: {best_result['n_features']}")
+    print(f"Best CV Mean Accuracy: {best_result['cv_mean_accuracy']:.4f} ± {best_result['cv_std_accuracy']:.4f}")
+    
+    return results_df
+
+
 def recursive_feature_elimination(X, y, estimator, cv, param_grid):
     """
     Perform Recursive Feature Elimination (RFE) in combination with Grid Search 
