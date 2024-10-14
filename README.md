@@ -7,7 +7,7 @@ This repository contains the code of my project for Scientific Programming (MSB1
 ## Installation
 Clone the git repo:
 ```bash
-git clone git@github.com:MaxVanHout/MSB1015.git
+git clone https://github.com/MaxVanHout/MSB1015.git
 ```
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install the required packages.
 ```bash
