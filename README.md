@@ -15,6 +15,9 @@ pip install notebook
 ```
 and run with the following command
 ```bash
+jupyter lab
+```
+```bash
 jupyter notebook
 ```
 ## Installation
