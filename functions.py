@@ -181,7 +181,7 @@ def feature_selection_filter(X: pd.DataFrame,
                               score_func: callable) -> pd.DataFrame:
     """
     Performs feature selection using SelectKBest with the provided scoring function and evaluates
-    the performance of the model using cross-validation for a range of features (1 to 20).
+    the performance of the model using cross-validation for a range of features (2 to 20).
 
     Parameters:
     ----------
@@ -209,7 +209,7 @@ def feature_selection_filter(X: pd.DataFrame,
     # Initialize a list to store results
     results = []
 
-    # Iterate over the number of features to select (from 1 to 20)
+    # Iterate over the number of features to select (from 2 to 20)
     for n_features in range(2, 21):
         # Use SelectKBest to select the top n features using the specified scoring function
         selector = SelectKBest(score_func=score_func, k=n_features)
@@ -251,7 +251,7 @@ def recursive_feature_elimination(X: pd.DataFrame,
                                    y: pd.Series | np.ndarray, 
                                    estimator: BaseEstimator, 
                                    cv: BaseCrossValidator, 
-                                   param_grid: dict) -> pd.DataFrame:
+                                   param_grid: dict) -> tuple[pd.DataFrame, BaseEstimator]:
     """
     Perform Recursive Feature Elimination (RFE) in combination with Grid Search 
     for hyperparameter tuning to select the optimal number of features for a given estimator.
@@ -286,17 +286,16 @@ def recursive_feature_elimination(X: pd.DataFrame,
         - 'best_params': The best hyperparameters found during grid search.
         - 'selected_features': The list of selected feature names for that iteration.
         
-    X_filtered : pandas.DataFrame
-        The input dataset X reduced to the best subset of selected features, based on the optimal 
-        number of features that yielded the highest cross-validated accuracy.
+    best_model : BaseEstimator
+        The best estimator (e.g., decision tree) fitted with the optimal hyperparameters and features.
     """
-    # Store results for each iteration
     results = []
+    best_model = None
+    best_cv_mean_accuracy = 0
 
-    # Loop through different numbers of selected features (2 to 20)
+    # Loop through different numbers of selected features
     for n_features in range(2, 21):
         print(f"Analyzing RFE with {n_features} features")
-
         # Recursive Feature Elimination (RFE) to select n_features
         rfe = RFE(estimator=estimator, n_features_to_select=n_features)
         X_selected = rfe.fit_transform(X, y)
@@ -306,10 +305,9 @@ def recursive_feature_elimination(X: pd.DataFrame,
         grid_search.fit(X_selected, y)
 
         # Best model from grid search
-        best_model = grid_search.best_estimator_
-
+        best_model_for_iteration = grid_search.best_estimator_
         # Cross-validation with the selected features
-        cv_scores = cross_val_score(best_model, X_selected, y, cv=cv, scoring='accuracy', n_jobs=-1)
+        cv_scores = cross_val_score(best_model_for_iteration, X_selected, y, cv=cv, scoring='accuracy', n_jobs=-1)
 
         # Get the feature selection mask and selected feature names
         selected_feature_names = X.columns[rfe.support_].tolist()
@@ -322,19 +320,20 @@ def recursive_feature_elimination(X: pd.DataFrame,
             'best_params': grid_search.best_params_,
             'selected_features': selected_feature_names
         })
-
+        # Check if the current model is better than the previous best model and store in best_model if true
+        if np.mean(cv_scores) > best_cv_mean_accuracy:
+            best_cv_mean_accuracy = np.mean(cv_scores)
+            best_model = best_model_for_iteration
         # Print cross-validation results for this number of features
         print(f"Number of Features: {n_features}, CV Mean Accuracy: {np.mean(cv_scores):.4f} ± {np.std(cv_scores):.4f}")
 
-    # Convert results to DataFrame for better visualization
     results_df = pd.DataFrame(results)
-
-    # Find the best result based on cross-validated mean accuracy
+    # Find the best result based on cross-validated mean accuracy and print the result
     best_result = results_df.loc[results_df['cv_mean_accuracy'].idxmax()]
     print(f"\nOptimal Number of Features: {best_result['n_features']}")
     print(f"Best CV Mean Accuracy: {best_result['cv_mean_accuracy']:.4f} ± {best_result['cv_std_accuracy']:.4f}")
 
-    return results_df
+    return results_df, best_model
 
 
 def corrupt_dataframe(df: pd.DataFrame) -> pd.DataFrame:
