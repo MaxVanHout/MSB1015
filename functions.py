@@ -20,19 +20,25 @@ def get_missing_values(df: pd.DataFrame) -> pd.DataFrame | None:
         pd.DataFrame or None: A DataFrame listing features with the number of missing values.
                              Returns None if no missing values are found.
     """
+    # Count the number of missing values in each column of the DataFrame
     missing_count = df.isna().sum()
+    # Calculate the percentage of missing values for each column
     missing_percentage = (missing_count / len(df)) * 100
+    # Select only those columns that have missing values (count > 0)
     missing_values = missing_count[missing_count > 0]
+    # Select the corresponding percentages of missing values for the columns with missing data
     missing_percentages = missing_percentage[missing_count > 0]
+    # Check if there are any columns with missing values
     if not missing_values.empty:
+        # Create a DataFrame to summarize the missing value information
         result = pd.DataFrame({
-            'Feature': missing_values.index,
-            'Number of Missing Values': missing_values.values,
-            'Percentage of Missing Values (%)': missing_percentages.values
+            'Feature': missing_values.index,                         
+            'Number of Missing Values': missing_values.values,      
+            'Percentage of Missing Values (%)': missing_percentages.values  
         })
-        return result
+        return result  # Return the DataFrame containing the missing values summary
     else:
-        return None
+        return None  # Return None if there are no missing values in the DataFrame
     
 
 def get_duplicate_rows(df: pd.DataFrame) -> pd.DataFrame | None:
@@ -46,6 +52,7 @@ def get_duplicate_rows(df: pd.DataFrame) -> pd.DataFrame | None:
         pd.DataFrame or None: A DataFrame containing the duplicate rows.
                              Returns None if no duplicates are found.
     """
+    # Return the duplicate rows if there are any, otherwise none
     return df[df.duplicated()] if df.duplicated().any() else None
 
 
@@ -60,11 +67,20 @@ def get_non_numeric_values(features_df: pd.DataFrame) -> pd.DataFrame | None:
         pd.DataFrame or None: A DataFrame listing the features, indices, and non-numeric values found.
                              Returns None if no non-numeric values are found.
     """
+    # Attempt to convert all values in the DataFrame to numeric types
+    # Any value that cannot be converted will result in NaN
     non_numeric = features_df.apply(pd.to_numeric, errors='coerce').isna()
+    # Create a list to store details of non-numeric values
     non_numeric_list = [
-        {'Feature': col, 'Index': idx, 'Non Numeric Value': features_df.at[idx, col]}
-        for col in non_numeric.columns for idx in non_numeric.index[non_numeric[col]]
+        {
+            'Feature': col,  # The name of the feature (column) with a non-numeric value
+            'Index': idx,    # The index of the row where the non-numeric value is located
+            'Non Numeric Value': features_df.at[idx, col]  # The actual non-numeric value found
+        }
+        for col in non_numeric.columns                       # Loop over each column in the DataFrame
+        for idx in non_numeric.index[non_numeric[col]]     # Loop over each index where the value is NaN
     ]
+    # Return a DataFrame summarizing the non-numeric values if any were found; otherwise, return None
     return pd.DataFrame(non_numeric_list) if non_numeric_list else None
 
 
@@ -79,10 +95,18 @@ def get_inconsistent_decimal_separator(features_df: pd.DataFrame) -> pd.DataFram
         pd.DataFrame or None: A DataFrame listing features, indices, and inconsistent values with commas.
                              Returns None if no inconsistencies are found.
     """
+    # Create a list to store details of values containing commas
     inconsistent_list = [
-        {'Feature': col, 'Index': idx, 'Inconsistent Value': features_df.at[idx, col]}
-        for col in features_df.columns for idx in features_df[features_df[col].astype(str).str.contains(',', na=False)].index
+        {
+            'Feature': col,  # The name of the feature (column) with an inconsistent value
+            'Index': idx,    # The index of the row where the inconsistent value is located
+            'Inconsistent Value': features_df.at[idx, col]  # The actual inconsistent value found
+        }
+        for col in features_df.columns  # Loop over each column in the DataFrame
+        # Find the indices of rows where the value in the column contains a comma (inconsistent)
+        for idx in features_df[features_df[col].astype(str).str.contains(',', na=False)].index 
     ]
+    # Return a DataFrame summarizing the inconsistent values if any were found; otherwise, return None
     return pd.DataFrame(inconsistent_list) if inconsistent_list else None
 
 
@@ -97,10 +121,12 @@ def get_unique_target_values(target_df: pd.DataFrame) -> pd.DataFrame | None:
         pd.DataFrame or None: A DataFrame listing features and their unique values.
                              Returns None if no non-numeric columns are present.
     """
+    # Create a DataFrame to store unique values for each target feature
     unique_values_df = pd.DataFrame({
-        'Target': target_df.columns,
-        'Unique Entries': [target_df[col].unique().tolist() for col in target_df]
+        'Target': target_df.columns,  # Column names (target features)
+        'Unique Entries': [target_df[col].unique().tolist() for col in target_df]  # Unique values for each column as a list
     })
+    # Return the DataFrame containing unique values if it's not empty; otherwise, return None
     return unique_values_df if not unique_values_df.empty else None
 
 
@@ -117,24 +143,31 @@ def check_data_quality(df: pd.DataFrame, target_col: str) -> dict:
         dict: A dictionary with the names of each check as keys and the corresponding result DataFrame as values. 
               If no issues are found in a check, that check is excluded from the dictionary.
     """
-    features_df = df.drop(columns=[target_col])
-    target_df = pd.DataFrame(df[target_col])
+    # Separate features and target from the original DataFrame
+    features_df = df.drop(columns=[target_col])  # Drop the target column to keep only feature columns
+    target_df = pd.DataFrame(df[target_col])      # Create a DataFrame for the target column
+    # Run various data quality checks and store the results in a dictionary
     checks = {
-        "Missing Values": get_missing_values(df),
-        "Duplicate Rows": get_duplicate_rows(df),
-        "Non-Numeric Entries": get_non_numeric_values(features_df),
-        "Classes": get_unique_target_values(target_df),
-        "Inconsistent Decimal Separators": get_inconsistent_decimal_separator(features_df),
+        "Missing Values": get_missing_values(df),                       # Check for missing values in the DataFrame
+        "Duplicate Rows": get_duplicate_rows(df),                       # Check for any duplicate rows in the DataFrame
+        "Non-Numeric Entries": get_non_numeric_values(features_df),     # Check for non-numeric entries in feature columns
+        "Classes": get_unique_target_values(target_df),                 # Check for unique class values in the target column
+        "Inconsistent Decimal Separators": get_inconsistent_decimal_separator(features_df),  # Check for inconsistent decimal separators in features
     }
+    # Iterate through each check and its result
     for check, result in checks.items():
         if result is None:
+            # Print a message if no issues were found for this check
             print(f"No {check.lower()} found.\n")
         else:
+            # If issues were found, print the results accordingly
             if check == 'Classes':
+                # For classes, print the unique entries found
                 print(f"{check} found: {result['Unique Entries'].tolist()}\n")
             else:
+                # For other checks, print the number of issues found
                 print(f"{check} found: {result.shape[0]}\n")
-    
+    # Return a dictionary of results for checks that found issues, excluding those that are None
     return {check: result for check, result in checks.items() if result is not None}
 
 
@@ -148,30 +181,40 @@ def calculate_feature_statistics(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: A DataFrame summarizing various spread metrics for each numerical feature.
     """
+    # Select only the numeric columns from the DataFrame
     df = df.select_dtypes(include='number')
+    # Calculate the range (max - min) for each numeric feature
     range_values = df.max() - df.min()
+    # Calculate the first quartile (25th percentile) for each feature
     Q1 = df.quantile(0.25)
+    # Calculate the third quartile (75th percentile) for each feature
     Q3 = df.quantile(0.75)
+    # Calculate the Interquartile Range (IQR) for each feature
     IQR = Q3 - Q1
+    # Calculate the mean for each feature
     means = df.mean()
+    # Calculate the standard deviation for each feature
     SD = df.std()
+    # Calculate the Median Absolute Deviation (MAD) for each feature
     MAD = abs(df - df.median()).median()
+    # Count the number of zeros in each feature
     zero_count = (df == 0).sum()
-    zero_percentage = (((df == 0).sum())/len(df))*100
-
+    # Calculate the percentage of zeros for each feature
+    zero_percentage = (((df == 0).sum()) / len(df)) * 100
+    # Create a DataFrame to summarize the statistics for each feature
     feature_stats = pd.DataFrame({
-        'Feature': df.columns,
-        'Mean': means,
-        'Range': range_values,
-        'IQR': IQR,
-        'MAD': MAD,
-        'Variance': df.var(),
-        'SD': SD,
-        'Number of Zeros': zero_count,
-        'Percentage of Zeros': zero_percentage
-    }).reset_index(drop=True)
+        'Feature': df.columns,                    
+        'Mean': means,                            
+        'Range': range_values,                    
+        'IQR': IQR,                              
+        'MAD': MAD,                              
+        'Variance': df.var(),                    
+        'SD': SD,                                
+        'Number of Zeros': zero_count,           
+        'Percentage of Zeros': zero_percentage   
+    }).reset_index(drop=True)  # Reset index to have a clean DataFrame without an index column
 
-    return feature_stats
+    return feature_stats  # Return the DataFrame with feature statistics
 
 
 def feature_selection_filter(X: pd.DataFrame, 
@@ -347,37 +390,39 @@ def corrupt_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
     - pd.DataFrame: The corrupted DataFrame.
     """
-    # Introduce missing values
-    num_missing = int(0.01 * df.size)
-    missing_indices = random.sample(range(df.size), num_missing)
-
+   # Introduce missing values into the DataFrame
+    num_missing = int(0.01 * df.size)  # Calculate the number of missing values (1% of total size)
+    missing_indices = random.sample(range(df.size), num_missing)  # Randomly select indices for missing values
+    # Set the selected indices to NaN (missing values)
     for idx in missing_indices:
-        df.iat[idx // df.shape[1], idx % df.shape[1]] = np.nan
+        df.iat[idx // df.shape[1], idx % df.shape[1]] = np.nan  # Use integer division and modulus to locate the row and column
 
     # Introduce non-numerical entries in numerical columns
-    for col in df.select_dtypes(include=np.number).columns:
-        num_non_numeric = int(0.0001 * len(df))
-        non_numeric_indices = random.sample(range(len(df)), num_non_numeric)
+    for col in df.select_dtypes(include=np.number).columns:  # Loop through each numerical column
+        num_non_numeric = int(0.0001 * len(df))  # Calculate number of non-numeric entries (0.01% of total rows)
+        non_numeric_indices = random.sample(range(len(df)), num_non_numeric)  # Randomly select indices for non-numeric values
 
+        # Replace selected indices with random non-numeric entries
         for idx in non_numeric_indices:
-            df.at[idx, col] = random.choice(['a', 'b', 'c', 'invalid', 'non-numeric'])
+            df.at[idx, col] = random.choice(['a', 'b', 'c', 'invalid', 'non-numeric'])  # Replace with random non-numeric value
 
     # Introduce misspellings in string columns
-    for col in df.select_dtypes(include='object').columns:
-        num_misspellings = int(0.01 * len(df))
-        misspell_indices = random.sample(range(len(df)), num_misspellings)
+    for col in df.select_dtypes(include='object').columns:  # Loop through each string column
+        num_misspellings = int(0.01 * len(df))  # Calculate number of misspellings (1% of total rows)
+        misspell_indices = random.sample(range(len(df)), num_misspellings)  # Randomly select indices for misspellings
 
+        # Replace the original value with a misspelled version
         for idx in misspell_indices:
-            original_value = df.at[idx, col]
-            if isinstance(original_value, str):
-                # Randomly generate a misspelled version
-                misspelled_value = ''.join(random.choice(original_value) for _ in range(len(original_value)))
-                df.at[idx, col] = misspelled_value
+            original_value = df.at[idx, col]  # Get the original value
+            if isinstance(original_value, str):  # Check if the original value is a string
+                # Randomly generate a misspelled version of the string
+                misspelled_value = ''.join(random.choice(original_value) for _ in range(len(original_value)))  # Generate a misspelled string
+                df.at[idx, col] = misspelled_value  # Replace the original value with the misspelled value
 
     # Introduce duplicate rows
-    num_rows_to_duplicate = int(0.05 * len(df))
-    if num_rows_to_duplicate > 0:
-        duplicates = df.sample(num_rows_to_duplicate, replace=True)
-        df = pd.concat([df, duplicates], ignore_index=True)
+    num_rows_to_duplicate = int(0.05 * len(df))  # Calculate the number of rows to duplicate (5% of total rows)
+    if num_rows_to_duplicate > 0:  # Check if there are rows to duplicate
+        duplicates = df.sample(num_rows_to_duplicate, replace=True)  # Randomly sample rows to duplicate
+        df = pd.concat([df, duplicates], ignore_index=True)  # Concatenate duplicates with the original DataFrame
 
-    return df
+    return df  # Return the modified DataFrame with introduced data issues
